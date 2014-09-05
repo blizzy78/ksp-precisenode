@@ -38,6 +38,7 @@ namespace RegexKSP {
 		internal bool encounter;
 		internal bool resizeMainWindow;
 		internal bool resizeClockWindow;
+		internal bool resizeOtherWindows;
 
 		internal bool progradeParsed = true;
 		internal bool radialParsed = true;
@@ -87,7 +88,7 @@ namespace RegexKSP {
 		private void setPrograde(double d) {
 			if (d != curState.deltaV.z) {
 				curState.deltaV.z = d;
-				progradeText = curState.deltaV.z.ToString();
+				progradeText = formatDV(curState.deltaV.z);
 				changed = true;
 			}
 		}
@@ -114,7 +115,7 @@ namespace RegexKSP {
 		private void setNormal(double d) {
 			if (d != curState.deltaV.y) {
 				curState.deltaV.y = d;
-				normalText = curState.deltaV.y.ToString();
+				normalText = formatDV(curState.deltaV.y);
 				changed = true;
 			}
 		}
@@ -141,7 +142,7 @@ namespace RegexKSP {
 		private void setRadial(double d) {
 			if (d != curState.deltaV.x) {
 				curState.deltaV.x = d;
-				radialText = curState.deltaV.x.ToString();
+				radialText = formatDV(curState.deltaV.x);
 				changed = true;
 			}
 		}
@@ -260,10 +261,19 @@ namespace RegexKSP {
 
 		private void updateCurrentNodeState() {
 			curNodeState.update(node);
-			progradeText = node.DeltaV.z.ToString();
-			normalText = node.DeltaV.y.ToString();
-			radialText = node.DeltaV.x.ToString();
+			progradeText = formatDV(node.DeltaV.z);
+			normalText = formatDV(node.DeltaV.y);
+			radialText = formatDV(node.DeltaV.x);
 			timeText = node.UT.ToString();
 		}
+
+        private static string formatDV(double value) {
+            //DaMichel: no, doesn't work so well. It cuts the text to 
+            // 3 digits after the decimal point while you enter it.
+            // Would be good to make it so that the number is rounded
+            // only after the user presses enter.
+            //return value.ToString("0.###"); 
+            return value.ToString();
+        }
 	}
 }
