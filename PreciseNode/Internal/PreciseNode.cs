@@ -301,25 +301,33 @@ namespace RegexKSP {
 
 		private void drawEAngle() {
 			// Ejection angle
-			if(options.showEAngle) {
-				String eangle = "n/a";
-				if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
-					double angle = FlightGlobals.ActiveVessel.orbit.getEjectionAngle(curState.node);
-					if (!double.IsNaN(angle)) {
-						eangle = Math.Abs(angle).ToString("0.##") + "° from " + ((angle >= 0) ? "prograde" : "retrograde");
-					}
-				}
-				GUIParts.drawDoubleLabel("Ejection angle:", 100, eangle, 150);
+            if (options.showEAngle)
+            {
+                if (curState.node.nextPatch.patchEndTransition == Orbit.PatchTransitionType.ESCAPE)
+                {
+                    String eangle = "n/a";
+                    if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun())
+                    {
+                        double angle = FlightGlobals.ActiveVessel.orbit.getEjectionAngle(curState.node);
+                        if (!double.IsNaN(angle))
+                        {
+                            eangle = Math.Abs(angle).ToString("0.##") + "° from " + ((angle >= 0) ? "prograde" : "retrograde");
+                        }
+                    }
+                    GUIParts.drawDoubleLabel("Ejection angle:", 100, eangle, 150);
 
-				String einclination = "n/a";
-				if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
-					double angle = FlightGlobals.ActiveVessel.orbit.getEjectionInclination(curState.node);
-					if (!double.IsNaN(angle)) {
-						einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? "north" : "south");
-					}
-				}
-				GUIParts.drawDoubleLabel("Eject. inclination:", 100, einclination, 150);
-			}
+                    String einclination = "n/a";
+                    if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun())
+                    {
+                        double angle = FlightGlobals.ActiveVessel.orbit.getEjectionInclination(curState.node);
+                        if (!double.IsNaN(angle))
+                        {
+                            einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? "north" : "south");
+                        }
+                    }
+                    GUIParts.drawDoubleLabel("Eject. inclination:", 100, einclination, 150);
+                }
+            }
 		}
 
 		private void drawEncounter(Color defaultColor) {
@@ -353,6 +361,8 @@ namespace RegexKSP {
 						// output the apoapsis and periapsis of our projected orbit.
 						GUIParts.drawDoubleLabel("Apoapsis:", 100, curState.node.nextPatch.ApA.formatMeters(), 100);
 						GUIParts.drawDoubleLabel("Periapsis:", 100, curState.node.nextPatch.PeA.formatMeters(), 130);
+                        GUIParts.drawDoubleLabel("Inclination:", 100, Math.Abs(curState.node.nextPatch.inclination).ToString("0.##") + "° ", 150);
+
 					}
 				}
 			}
