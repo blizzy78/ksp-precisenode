@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 /******************************************************************************
- * Copyright (c) 2014, Maik Schreiber
+ * Copyright (c) 2014-2015, Maik Schreiber
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without

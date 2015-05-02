@@ -5,7 +5,7 @@ using KSP.IO;
 
 /******************************************************************************
  * Copyright (c) 2013-2014, Justin Bengtson
- * Copyright (c) 2014, Maik Schreiber
+ * Copyright (c) 2014-2015, Maik Schreiber
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ namespace RegexKSP {
 			ADDWIDGET
 		};
 
-		internal static int VERSION = 7;
+		internal static int VERSION = 8;
 
 		private static readonly Color PROGRADE_COLOR = new Color(86, 144, 0);
 		private static readonly Color NORMAL_COLOR = new Color(151, 0, 162);
@@ -755,7 +755,7 @@ namespace RegexKSP {
 		/// <value><c>true</c> if the Node Editor can be shown; otherwise, <c>false</c>.</value>
 		private bool canShowNodeEditor {
 			get {
-				return (FlightGlobals.ActiveVessel != null) && MapView.MapIsEnabled && (NodeTools.getSolver().maneuverNodes.Count > 0);
+				return (FlightGlobals.ActiveVessel != null) && MapView.MapIsEnabled && (NodeTools.getSolver() != null) && (NodeTools.getSolver().maneuverNodes.Count > 0);
 			}
 		}
 
