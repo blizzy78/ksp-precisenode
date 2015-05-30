@@ -138,6 +138,7 @@ namespace RegexKSP {
 		/// Overridden function from MonoBehavior
 		/// </summary>
 		internal void OnGUI() {
+            GUIParts.initGUI(options.useKspSkin);
 			// Porcess any scheduled functions
 			if(Event.current.type == EventType.Layout && !FlightDriver.Pause && scheduledForLayout.Count > 0) {
 				foreach(Action a in scheduledForLayout) {
@@ -150,9 +151,22 @@ namespace RegexKSP {
 					// On layout we should see if we have nodes to act on.
 					if(curState.resizeMainWindow) {
 						options.mainWindowPos.height = 0;
+                        options.mainWindowPos.width  = 0; //DaMichel: reset width as well because a change in style needs contraction in width.
 					}
 					if(curState.resizeClockWindow) {
 						options.clockWindowPos.height = 0;
+                        options.clockWindowPos.width = 0;
+					}
+					//DaMichel: resize all windows when the gui style changes
+					if(curState.resizeOtherWindows) {
+						options.optionsWindowPos.height = 0;
+						options.keymapperWindowPos.height = 0;
+						options.conicsWindowPos.height = 0;
+						options.tripWindowPos.height = 0;
+						options.optionsWindowPos.width = 0;
+						options.keymapperWindowPos.width = 0;
+						options.conicsWindowPos.width = 0;
+						options.tripWindowPos.width = 0;
 					}
 					showEncounter = curState.encounter;
 					// this prevents the clock window from showing the time to
@@ -179,12 +193,12 @@ namespace RegexKSP {
 		/// Draw Node Editor and Options GUI
 		/// </summary>
 		private void drawGUI() {
-			GUI.skin = null;
 			options.mainWindowPos = GUILayout.Window(mainWindowId, options.mainWindowPos, (id) => drawMainWindow(),
 				"Precise Node", GUILayout.ExpandHeight(true));
 			if(showOptions) {
+				//DaMichel: added hardcoded minimal width. See GUIParts.
 				options.optionsWindowPos = GUILayout.Window(optionsWindowId, options.optionsWindowPos, (id) => drawOptionsWindow(),
-					"Precise Node Options", GUILayout.ExpandHeight(true));
+					"Precise Node Options", GUILayout.ExpandHeight(true), GUILayout.MinWidth(GUIParts.optionsWindowSize));
 			}
 			if(showKeymapper) {
 				options.keymapperWindowPos = GUILayout.Window(keymapperWindowId, options.keymapperWindowPos, (id) => drawKeymapperWindow(),
@@ -200,7 +214,6 @@ namespace RegexKSP {
 		/// Draw Clock GUI
 		/// </summary>
 		private void drawClockGUI() {
-			GUI.skin = null;
 			options.clockWindowPos = GUILayout.Window(clockWindowId, options.clockWindowPos, (id) => drawClockWindow(),
 				"Clock", GUILayout.ExpandHeight(true));
 		}
@@ -209,7 +222,6 @@ namespace RegexKSP {
 		/// Draw Conics GUI
 		/// </summary>
 		private void drawConicsGUI() {
-			GUI.skin = null;
 			options.conicsWindowPos = GUILayout.Window(conicsWindowId, options.conicsWindowPos, (id) => drawConicsWindow(),
 				"Conics Controls", GUILayout.ExpandHeight(true));
 		}
@@ -238,63 +250,64 @@ namespace RegexKSP {
 			GUI.backgroundColor = defaultColor;
 
 			GUILayout.BeginVertical();
-			if(options.showManeuverPager) {
-				drawManeuverPager();
-			}
-
-			// Human-readable time
-			GUIParts.drawDoubleLabel("Time:", 100, curState.currentUT().convertUTtoHumanTime(), 150);
-
-			// Increment buttons
-			GUILayout.BeginHorizontal();
-			GUILayout.Label("Increment:", GUILayout.Width(100));
-			GUIParts.drawButton("0.01", (options.increment == 0.01?Color.yellow:defaultColor), () => { options.increment = 0.01; });
-			GUIParts.drawButton("0.1", (options.increment == 0.1?Color.yellow:defaultColor), () => { options.increment = 0.1; });
-			GUIParts.drawButton("1", (options.increment == 1?Color.yellow:defaultColor), () => { options.increment = 1; });
-			GUIParts.drawButton("10", (options.increment == 10?Color.yellow:defaultColor), () => { options.increment = 10; });
-			GUIParts.drawButton("100", (options.increment == 100?Color.yellow:defaultColor), () => { options.increment = 100; });
-			GUILayout.EndHorizontal();
-
-			drawTimeControls(contentColor);
-
-			GUILayout.BeginHorizontal();
-				GUILayout.BeginVertical();
-					drawProgradeControls(contentColor);
-					drawNormalControls(contentColor);
-					drawRadialControls(contentColor);
+				GUILayout.BeginVertical(GUIParts.styleFrameless);
+					if(options.showManeuverPager) {
+						drawManeuverPager();
+					}
+					// Human-readable time
+					GUIParts.drawDoubleLabel("Time:", GUIParts.leftColumnWidth, curState.currentUT().convertUTtoHumanTime(), 150);
 				GUILayout.EndVertical();
-				GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
-					GUIParts.drawButton("MS", defaultColor, () => {
-						curState.memorize();
-					}, GUILayout.ExpandHeight(true));
-					GUI.enabled = curState.HasMemorized;
-					GUIParts.drawButton("MR", defaultColor, () => {
-						curState.recallMemory();
-					}, GUILayout.ExpandHeight(true));
-					GUI.enabled = true;
+
+				GUILayout.BeginVertical(GUIParts.styleFramed);
+					// Increment buttons
+					GUILayout.BeginHorizontal();
+						GUILayout.Label("Increment:", GUILayout.Width(GUIParts.leftColumnNodeWidth));
+						GUIParts.drawButton("0.01", (options.increment == 0.01?Color.yellow:defaultColor), () => { options.increment = 0.01; });
+						GUIParts.drawButton("0.1", (options.increment == 0.1?Color.yellow:defaultColor), () => { options.increment = 0.1; });
+						GUIParts.drawButton("1", (options.increment == 1?Color.yellow:defaultColor), () => { options.increment = 1; });
+						GUIParts.drawButton("10", (options.increment == 10?Color.yellow:defaultColor), () => { options.increment = 10; });
+						GUIParts.drawButton("100", (options.increment == 100?Color.yellow:defaultColor), () => { options.increment = 100; });
+					GUILayout.EndHorizontal();
+
+					drawTimeControls(contentColor);
+
+					GUILayout.BeginHorizontal();
+						GUILayout.BeginVertical();
+							drawProgradeControls(contentColor);
+							drawNormalControls(contentColor);
+							drawRadialControls(contentColor);
+						GUILayout.EndVertical();
+						GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
+							GUIParts.drawButton("MS", defaultColor, () => {
+								curState.memorize();
+							}, GUILayout.ExpandHeight(true));
+							GUI.enabled = curState.HasMemorized;
+							GUIParts.drawButton("MR", defaultColor, () => {
+								curState.recallMemory();
+							}, GUILayout.ExpandHeight(true));
+							GUI.enabled = true;
+						GUILayout.EndVertical();
+					GUILayout.EndHorizontal();
 				GUILayout.EndVertical();
-			GUILayout.EndHorizontal();
-
-			// total delta-V display
-			GUIParts.drawDoubleLabel("Total Δv:", 100, curState.currentMagnitude().ToString("0.##") + " m/s", 130);
-
-			drawEAngle();
-			drawEncounter(defaultColor);
-
-			// Conics mode controls
-			if (options.showConics) {
-				GUIParts.drawConicsControls(options);
-			}
-			
-			// trip info button and vessel focus buttons
-			GUILayout.BeginHorizontal();
-			GUIParts.drawButton("Trip Info", (options.showTrip?Color.yellow:defaultColor), () => { options.showTrip = !options.showTrip; });
-			GUIParts.drawButton("Focus on Vessel", defaultColor, () => {
-				MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.vessel != null) && o.vessel.Equals(FlightGlobals.ActiveVessel));
-				MapView.MapCamera.SetTarget(mapObject);
-			});
-			GUILayout.EndHorizontal();
-			
+                
+				GUILayout.BeginVertical(GUIParts.styleFramed);
+					// total delta-V display
+					GUIParts.drawDoubleLabel("Total Δv:", GUIParts.leftColumnDataWidth, curState.currentMagnitude().ToString("0.##") + " m/s", 130);
+					drawEAngle();
+					drawEncounter(defaultColor);
+				GUILayout.EndVertical();
+					// Conics mode controls
+					if (options.showConics) {
+						GUIParts.drawConicsControls(options);
+					}
+				// trip info button and vessel focus buttons
+				GUILayout.BeginHorizontal(GUIParts.styleFrameless);
+					GUIParts.drawButton("Trip Info", (options.showTrip?Color.yellow:defaultColor), () => { options.showTrip = !options.showTrip; });
+					GUIParts.drawButton("Focus on Vessel", defaultColor, () => {
+						MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.vessel != null) && o.vessel.Equals(FlightGlobals.ActiveVessel));
+						MapView.MapCamera.SetTarget(mapObject);
+					});
+				GUILayout.EndHorizontal();
 			GUILayout.EndVertical();
 			GUI.DragWindow();
 		}
@@ -309,7 +322,7 @@ namespace RegexKSP {
 						eangle = Math.Abs(angle).ToString("0.##") + "° from " + ((angle >= 0) ? "prograde" : "retrograde");
 					}
 				}
-				GUIParts.drawDoubleLabel("Ejection angle:", 100, eangle, 150);
+                GUIParts.drawDoubleLabel("Ejection angle:", GUIParts.leftColumnDataWidth, eangle, 150);
 
 				String einclination = "n/a";
 				if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
@@ -318,7 +331,7 @@ namespace RegexKSP {
 						einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? "north" : "south");
 					}
 				}
-				GUIParts.drawDoubleLabel("Eject. inclination:", 100, einclination, 150);
+                GUIParts.drawDoubleLabel("Eject. inclination:", GUIParts.leftColumnDataWidth, einclination, 150);
 			}
 		}
 
@@ -340,9 +353,9 @@ namespace RegexKSP {
 						curState.encounter = false;
 					}
 					// Next encounter periapsis
-					GUIParts.drawDoubleLabel("(" + name + ") Pe:", 100, PeA, 130);
+                    GUIParts.drawDoubleLabel("(" + name + ") Pe:", GUIParts.leftColumnDataWidth, PeA, 130);
 					GUILayout.BeginHorizontal();
-					GUILayout.Label("", GUILayout.Width(100));
+                    GUILayout.Label("", GUILayout.Width(GUIParts.leftColumnDataWidth));
 					GUIParts.drawButton("Focus on " + theName, defaultColor, () => {
 						MapObject mapObject = PlanetariumCamera.fetch.targets.Find(o => (o.celestialBody != null) && (o.celestialBody.name == name));
 						MapView.MapCamera.SetTarget(mapObject);
@@ -351,8 +364,8 @@ namespace RegexKSP {
 				} else {
 					if(curState.node.solver.flightPlan.Count > 1) {
 						// output the apoapsis and periapsis of our projected orbit.
-						GUIParts.drawDoubleLabel("Apoapsis:", 100, curState.node.nextPatch.ApA.formatMeters(), 100);
-						GUIParts.drawDoubleLabel("Periapsis:", 100, curState.node.nextPatch.PeA.formatMeters(), 130);
+                        GUIParts.drawDoubleLabel("Apoapsis:", GUIParts.leftColumnDataWidth, curState.node.nextPatch.ApA.formatMeters(), 100);
+                        GUIParts.drawDoubleLabel("Periapsis:", GUIParts.leftColumnDataWidth, curState.node.nextPatch.PeA.formatMeters(), 130);
 					}
 				}
 			}
@@ -361,11 +374,11 @@ namespace RegexKSP {
 		private void drawTimeControls(Color contentColor) {
 			// Universal time controls
 			GUILayout.BeginHorizontal();
-			GUILayout.Label((options.largeUTIncrement?"UT: (x10 inc)":"UT:"), GUILayout.Width(100));
+            GUILayout.Label((options.largeUTIncrement ? "UT: (x10 inc)" : "UT:"), GUILayout.Width(GUIParts.leftColumnNodeWidth));
 			if(!curState.timeParsed) {
 				GUI.contentColor = Color.red;
 			}
-			string check = GUILayout.TextField(curState.timeText, GUILayout.Width(100));
+            string check = GUILayout.TextField(curState.timeText, GUILayout.ExpandWidth(true));
 			if(!curState.timeText.Equals(check, StringComparison.Ordinal)) {
 				curState.setUT(check);
 			}
@@ -423,23 +436,24 @@ namespace RegexKSP {
 			// Prograde controls
 			GUILayout.BeginHorizontal();
 			GUI.contentColor = PROGRADE_COLOR;
-			GUILayout.Label("Prograde:", GUILayout.Width(100));
+            GUILayout.Label("Prograde:", GUILayout.Width(GUIParts.leftColumnNodeWidth));
 			if (!curState.progradeParsed) {
 				GUI.contentColor = Color.red;
 				GUI.backgroundColor = Color.red;
 			}
-			string check = GUILayout.TextField(curState.progradeText, GUILayout.Width(70));
-			GUI.contentColor = oldContentColor;
-			GUI.backgroundColor = oldBackgroundColor;
+            string check = GUILayout.TextField(curState.progradeText, GUIParts.styleNodeControlTextField, GUILayout.Width(GUIParts.nodeControlTextFieldWidth));
 			if(!curState.progradeText.Equals(check, StringComparison.Ordinal)) {
 				curState.setPrograde(check);
 			}
+            //GUI.contentColor = contentColor;
 			GUIParts.drawPlusMinusButtons(() => {
 				curState.addPrograde(options.increment);
 			}, () => {
 				curState.addPrograde(-options.increment);
 			});
 			GUILayout.EndHorizontal();
+            GUI.contentColor = oldContentColor;
+            GUI.backgroundColor = oldBackgroundColor;
 		}
 
 		private void drawNormalControls(Color contentColor) {
@@ -448,24 +462,24 @@ namespace RegexKSP {
 			// Normal controls
 			GUILayout.BeginHorizontal();
 			GUI.contentColor = NORMAL_COLOR;
-			GUILayout.Label("Normal:", GUILayout.Width(100));
+            GUILayout.Label("Normal:", GUILayout.Width(GUIParts.leftColumnNodeWidth));
 			if (!curState.normalParsed) {
 				GUI.contentColor = Color.red;
 				GUI.backgroundColor = Color.red;
 			}
-			string check = GUILayout.TextField(curState.normalText, GUILayout.Width(70));
-			GUI.contentColor = oldContentColor;
-			GUI.backgroundColor = oldBackgroundColor;
+			string check = GUILayout.TextField(curState.normalText, GUIParts.styleNodeControlTextField, GUILayout.Width(GUIParts.nodeControlTextFieldWidth));
 			if (!curState.normalText.Equals(check, StringComparison.Ordinal)) {
 				curState.setNormal(check);
 			}
-			GUI.contentColor = contentColor;
+			//GUI.contentColor = contentColor;
 			GUIParts.drawPlusMinusButtons(() => {
 				curState.addNormal(options.increment);
 			}, () => {
 				curState.addNormal(-options.increment);
 			});
 			GUILayout.EndHorizontal();
+            GUI.contentColor = oldContentColor;
+            GUI.backgroundColor = oldBackgroundColor;
 		}
 
 		private void drawRadialControls(Color contentColor) {
@@ -474,24 +488,24 @@ namespace RegexKSP {
 			// radial controls
 			GUILayout.BeginHorizontal();
 			GUI.contentColor = RADIAL_COLOR;
-			GUILayout.Label("Radial:", GUILayout.Width(100));
+            GUILayout.Label("Radial:", GUILayout.Width(GUIParts.leftColumnNodeWidth));
 			if (!curState.radialParsed) {
 				GUI.contentColor = Color.red;
 				GUI.backgroundColor = Color.red;
 			}
-			string check = GUILayout.TextField(curState.radialText, GUILayout.Width(70));
-			GUI.contentColor = oldContentColor;
-			GUI.backgroundColor = oldBackgroundColor;
+			string check = GUILayout.TextField(curState.radialText, GUIParts.styleNodeControlTextField, GUILayout.Width(GUIParts.nodeControlTextFieldWidth));
 			if (!curState.radialText.Equals(check, StringComparison.Ordinal)) {
 				curState.setRadial(check);
 			}
-			GUI.contentColor = contentColor;
+			//GUI.contentColor = contentColor;
 			GUIParts.drawPlusMinusButtons(() => {
 				curState.addRadial(options.increment);
 			}, () => {
 				curState.addRadial(-options.increment);
 			});
 			GUILayout.EndHorizontal();
+            GUI.contentColor = oldContentColor;
+            GUI.backgroundColor = oldBackgroundColor;
 		}
 
 		private void drawManeuverPager() {
@@ -501,9 +515,9 @@ namespace RegexKSP {
 			int count = solver.maneuverNodes.Count;
 
 			GUILayout.BeginHorizontal();
-
 			GUI.enabled = count > 1;
-			if (GUILayout.Button("◀")) {
+            if (GUILayout.Button("◀", GUIParts.stylePagerButtons))
+            {
 				if (idx > 0) {
 					curState.nextNode = solver.maneuverNodes[idx - 1];
 				} else {
@@ -512,15 +526,17 @@ namespace RegexKSP {
 				curState.clearMemory();
 			}
 			GUI.enabled = true;
-			if (GUILayout.Button("Node " + (idx + 1))) {
+            if (GUILayout.Button("Node " + (idx + 1), GUIParts.stylePagerButtons))
+            {
 				MapView.MapCamera.SetTarget(curState.node.scaledSpaceTarget);
 			}
 			GUIParts.drawButton("Del", Color.red, () => {
 				solver.RemoveManeuverNode(curState.node);
 				curState.clearMemory();
-			});
+			}, GUIParts.stylePagerButtons);
 			GUI.enabled = count > 1;
-			if (GUILayout.Button("▶")) {
+            if (GUILayout.Button("▶", GUIParts.stylePagerButtons))
+            {
 				if (idx < (count - 1)) {
 					curState.nextNode = solver.maneuverNodes[idx + 1];
 				} else {
@@ -621,6 +637,15 @@ namespace RegexKSP {
 				options.showOrbitInfo = temp;
 				curState.resizeMainWindow = true;
 			}
+
+            temp = GUILayout.Toggle(options.useKspSkin, "Use SKP Skin");
+            if (temp != options.useKspSkin) {
+                options.useKspSkin = temp;
+                curState.resizeMainWindow = true;
+                curState.resizeClockWindow = true;
+				curState.resizeOtherWindows = true;
+            }
+
 #if NODE_CLEANUP
 			options.removeUsedNodes = GUILayout.Toggle(options.removeUsedNodes, "Remove used nodes");
             //TODO: Add threshold controls for removing used nodes
@@ -936,6 +961,7 @@ namespace RegexKSP {
 					options.usedNodeThreshold = config.GetValue<double>("usedNodeThreshold", 0.5);
 #endif
 					options.largeUTIncrement = config.GetValue<bool>("largeUTIncrement", false);
+                    options.useKspSkin = config.GetValue<bool>("useKspSkin", false);
 
 					string temp = config.GetValue<String>("progInc", "Keypad8");
 					options.progInc = (KeyCode)Enum.Parse(typeof(KeyCode), temp);
@@ -1013,6 +1039,7 @@ namespace RegexKSP {
 			config["usedNodeThreshold"] = options.usedNodeThreshold;
 #endif
 			config["largeUTIncrement"] = options.largeUTIncrement;
+            config["useKspSkin"] = options.useKspSkin;
 
 			config.save();
 		}
