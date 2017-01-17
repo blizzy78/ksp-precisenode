@@ -104,40 +104,40 @@ namespace RegexKSP {
 		/// </summary>
 		internal void Update() {
 			if(!FlightDriver.Pause && canShowNodeEditor) {
-                PatchedConicSolver solver = NodeTools.getSolver();
-                if(solver.maneuverNodes.Count > 0) {
-                    if(!curState.hasNode() || !solver.maneuverNodes.Contains(curState.node)) {
-                        // get the first one if we can't find the current or it's null
-                        curState = new NodeManager(solver.maneuverNodes[0]);
-                    } else if(curState.hasNode()) {
-                        curState.updateNode();
-                        curState = curState.nextState();
-                    }
-                } else {
-                    if(curState.hasNode()) {
-                        curState = new NodeManager();
-                        curState.resizeClockWindow = true;
-                    }
-                }
-                processKeyInput();
+				PatchedConicSolver solver = NodeTools.getSolver();
+				if(solver.maneuverNodes.Count > 0) {
+					if(!curState.hasNode() || !solver.maneuverNodes.Contains(curState.node)) {
+						// get the first one if we can't find the current or it's null
+						curState = new NodeManager(solver.maneuverNodes[0]);
+					} else if(curState.hasNode()) {
+						curState.updateNode();
+						curState = curState.nextState();
+					}
+				} else {
+					if(curState.hasNode()) {
+						curState = new NodeManager();
+						curState.resizeClockWindow = true;
+					}
+				}
+				processKeyInput();
 			}
 
 			intuitiveNodeGizmosManager.OnUpdate();
 		}
 
 #if NODE_CLEANUP
-        internal void FixedUpdate() {
-            if(!FlightDriver.Pause) {
-                PatchedConicSolver solver = NodeTools.getSolver();
-                if(options.removeUsedNodes && solver.maneuverNodes.Count > 0) {
-                    ManeuverNode node = solver.maneuverNodes[0];
-                    if(node.GetBurnVector(FlightGlobals.ActiveVessel.orbit).magnitude < options.usedNodeThreshold) {
-                        solver.RemoveManeuverNode(node);
-                        //TODO: Clean up states after removing the node.
-                    }
-                }
-            }
-        }
+		internal void FixedUpdate() {
+			if(!FlightDriver.Pause) {
+				PatchedConicSolver solver = NodeTools.getSolver();
+				if(options.removeUsedNodes && solver.maneuverNodes.Count > 0) {
+					ManeuverNode node = solver.maneuverNodes[0];
+					if(node.GetBurnVector(FlightGlobals.ActiveVessel.orbit).magnitude < options.usedNodeThreshold) {
+						solver.RemoveManeuverNode(node);
+						//TODO: Clean up states after removing the node.
+					}
+				}
+			}
+		}
 #endif
 
 		/// <summary>
@@ -307,24 +307,32 @@ namespace RegexKSP {
 
 		private void drawEAngle() {
 			// Ejection angle
-			if(options.showEAngle) {
-				String eangle = "n/a";
-				if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
-					double angle = FlightGlobals.ActiveVessel.orbit.getEjectionAngle(curState.node);
-					if (!double.IsNaN(angle)) {
-						eangle = Math.Abs(angle).ToString("0.##") + "° from " + ((angle >= 0) ? "prograde" : "retrograde");
+			if (options.showEAngle)
+			{
+				if (curState.node.nextPatch.patchEndTransition == Orbit.PatchTransitionType.ESCAPE)
+				{
+					String eangle = "n/a";
+					if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun())
+					{
+						double angle = FlightGlobals.ActiveVessel.orbit.getEjectionAngle(curState.node);
+						if (!double.IsNaN(angle))
+						{
+							eangle = Math.Abs(angle).ToString("0.##") + "° from " + ((angle >= 0) ? "prograde" : "retrograde");
+						}
 					}
-				}
-				GUIParts.drawDoubleLabel("Ejection angle:", 100, eangle, 150);
+					GUIParts.drawDoubleLabel("Ejection angle:", 100, eangle, 150);
 
-				String einclination = "n/a";
-				if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun()) {
-					double angle = FlightGlobals.ActiveVessel.orbit.getEjectionInclination(curState.node);
-					if (!double.IsNaN(angle)) {
-						einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? "north" : "south");
+					String einclination = "n/a";
+					if (!FlightGlobals.ActiveVessel.orbit.referenceBody.isSun())
+					{
+						double angle = FlightGlobals.ActiveVessel.orbit.getEjectionInclination(curState.node);
+						if (!double.IsNaN(angle))
+						{
+							einclination = Math.Abs(angle).ToString("0.##") + "° " + ((angle >= 0) ? "north" : "south");
+						}
 					}
+					GUIParts.drawDoubleLabel("Eject. inclination:", 100, einclination, 150);
 				}
-				GUIParts.drawDoubleLabel("Eject. inclination:", 100, einclination, 150);
 			}
 		}
 
@@ -636,7 +644,7 @@ namespace RegexKSP {
 			}
 #if NODE_CLEANUP
 			options.removeUsedNodes = GUILayout.Toggle(options.removeUsedNodes, "Remove used nodes");
-            //TODO: Add threshold controls for removing used nodes
+			//TODO: Add threshold controls for removing used nodes
 #endif
 
 			GUILayout.EndVertical();
@@ -1018,6 +1026,5 @@ namespace RegexKSP {
 
 			config.save();
 		}
-	}	
+	}   
 }
-
